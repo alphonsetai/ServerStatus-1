@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Update by : https://github.com/cppla/ServerStatus
 # 支持Python版本：2.7 to 3.5
@@ -13,6 +14,7 @@ INTERVAL = 1 #更新间隔
 
 import socket
 import time
+import timeit
 import re
 import os
 import sys
@@ -176,6 +178,11 @@ lostRate = {
     '189': 0.0,
     '10086': 0.0
 }
+pingTime = {
+    '10010': 0,
+    '189': 0,
+    '10086': 0
+}
 def _ping_thread(host, mark, port):
     lostPacket = 0
     allPacket = 0
@@ -185,7 +192,9 @@ def _ping_thread(host, mark, port):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(1)
         try:
+            b = timeit.default_timer()
             s.connect((host, port))
+            pingTime[mark] = int((timeit.default_timer()-b)*1000)
         except:
             lostPacket += 1
         finally:
@@ -317,6 +326,9 @@ if __name__ == '__main__':
                 array['ping_10010'] = lostRate.get('10010') * 100
                 array['ping_189'] = lostRate.get('189') * 100
                 array['ping_10086'] = lostRate.get('10086') * 100
+                array['time_10010'] = pingTime.get('10010')
+                array['time_189'] = pingTime.get('189')
+                array['time_10086'] = pingTime.get('10086')
                 array['tcp'], array['udp'], array['process'], array['thread'] = tupd()
 
                 s.send("update " + json.dumps(array) + "\n")
